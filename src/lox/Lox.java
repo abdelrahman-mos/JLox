@@ -25,6 +25,9 @@ public class Lox {
     private static void runFile(String Path) throws IOException {
         byte[] bytes = Files.readAllBytes(Paths.get(Path));
         run(new String(bytes, Charset.defaultCharset()));
+
+        // Indicate an error in the exit code
+        if (hadError) System.exit(65);
     }
 
     private static void runPrompt() throws IOException {
@@ -36,6 +39,8 @@ public class Lox {
             String line = reader.readLine(); // read user input on demand
             if (line == null) break; // ctrl-D
             run(line);
+            // reset the hadError flag
+            hadError = false;
         }
     }
 
