@@ -13,6 +13,27 @@ public class Scanner {
     private int start = 0;
     private int current = 0;
     private int line = 1;
+    private static final Map<String, TokenType> keywords;
+
+    static {
+        keywords = new HashMap<>();
+        keywords.put("and", AND);
+        keywords.put("class", CLASS);
+        keywords.put("else", ELSE);
+        keywords.put("false", FALSE);
+        keywords.put("for", FOR);
+        keywords.put("fun", FUN);
+        keywords.put("if", IF);
+        keywords.put("nil", NIL);
+        keywords.put("or", OR);
+        keywords.put("print", PRINT);
+        keywords.put("return", RETURN);
+        keywords.put("super", SUPER);
+        keywords.put("this", THIS);
+        keywords.put("true", TRUE);
+        keywords.put("var", VAR);
+        keywords.put("while", WHILE);
+    }
 
     Scanner(String source) {
         this.source = source;
@@ -59,7 +80,9 @@ public class Scanner {
                 // might be a comment not just a slash
                 if (match('/')) {
                     // this is officially a comment
-                    while(peek() != '\n' && !isAtEnd()) advance();
+                    while (peek() != '\n' && !isAtEnd()) advance();
+                } else if (match('*')) {
+                    longComment();
                 } else {
                     addToken(SLASH);
                 }
@@ -79,10 +102,22 @@ public class Scanner {
             default:
                 if (isDigit(c)) {
                     number();
+                } else if (isAlpha(c)) {
+                    identifier();
+                } else {
+                    Lox.error(line, "Unexpected character.");
                 }
-                Lox.error(line, "Unexpected character.");
                 break;
         }
+    }
+
+    private void identifier() {
+        while (isAlphaNumeric(peek())) advance(); // reach to the end of identifier
+
+        String text = source.substring(start, current);
+        TokenType type = keywords.get(text);
+        if (type == null) type = IDENTIFIER;
+        addToken(type);
     }
 
     private void number() {
@@ -114,6 +149,14 @@ public class Scanner {
         addToken(STRING, value);
     }
 
+    private void longComment() {
+        while (peek() != '*') {
+            advance();
+        }
+
+        if (peek() == '/') advance();
+    }
+
     private boolean match(char expected) {
         // like a conditional advance() where it returns true if the character at
         // current is equal to the expected and increments current.
@@ -137,6 +180,16 @@ public class Scanner {
 
     private boolean isDigit(char c) {
         return c >= '0' && c <= '9';
+    }
+
+    private boolean isAlpha(char c) {
+        return  (c >= 'a' && c <= 'z') ||
+                (c >= 'A' && c <= 'Z') ||
+                c == '_';
+    }
+
+    private boolean isAlphaNumeric(char c) {
+        return isAlpha(c) || isDigit(c);
     }
 
     private boolean isAtEnd() {
