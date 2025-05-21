@@ -41,7 +41,50 @@ public class Scanner {
             case '+': addToken(PLUS); break;
             case ';': addToken(SEMICOLON); break;
             case '*': addToken(STAR); break;
+            // the upcoming chars may have = after them to mean a different thing
+            // != == >= <= should be a parsed as a single lexeme
+            case '!':
+                addToken(match('=') ? BANG_EQUAL : BANG);
+                break;
+            case '=':
+                addToken(match('=') ? EQUAL_EQUAL : EQUAL);
+                break;
+            case '<':
+                addToken(match('=') ? LESS_EQUAL : LESS);
+                break;
+            case '>':
+                addToken(match('=') ? GREATER_EQUAL : GREATER);
+                break;
+            case '/':
+                // might be a comment not just a slash
+                if (match('/')) {
+                    // this is officially a comment
+                    while(peek() != '\n' && !isAtEnd()) advance();
+                } else {
+                    addToken(SLASH);
+                }
+                break;
+
+            default:
+                Lox.error(line, "Unexpected character.");
+                break;
         }
+    }
+
+    private boolean match(char expected) {
+        // like a conditional advance() where it returns true if the character at
+        // current is equal to the expected and increments current.
+        if (isAtEnd()) return false;
+        if (source.charAt(current) != expected) return false;
+
+        current++;
+        return true;
+    }
+
+    private char peek() {
+        // we sometimes need to take a peek at the next character without advancing
+        if (isAtEnd()) return '\0';
+        return source.charAt(current);
     }
 
     private boolean isAtEnd() {
