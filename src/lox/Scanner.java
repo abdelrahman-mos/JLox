@@ -77,14 +77,29 @@ public class Scanner {
             case '"': string(); break;
 
             default:
+                if (isDigit(c)) {
+                    number();
+                }
                 Lox.error(line, "Unexpected character.");
                 break;
         }
     }
 
+    private void number() {
+        while(isDigit(peek())) advance();
+
+        if (peek() == '.' && isDigit(peekNext())) {
+            // consume the .
+            advance();
+            while (isDigit(peek())) advance();
+        }
+
+        addToken(NUMBER, Double.parseDouble(source.substring(start, current)));
+    }
+
     private void string() {
         while (peek() != '"' && !isAtEnd()) {
-            if (peek() == '\n') line++;
+            if (peek() == '\n') line++; // for some reason we support multiline strings.
             advance();
         }
 
@@ -113,6 +128,15 @@ public class Scanner {
         // we sometimes need to take a peek at the next character without advancing
         if (isAtEnd()) return '\0';
         return source.charAt(current);
+    }
+
+    private char peekNext() {
+        if (current + 1 >= source.length()) return '\0';
+        return source.charAt(current + 1);
+    }
+
+    private boolean isDigit(char c) {
+        return c >= '0' && c <= '9';
     }
 
     private boolean isAtEnd() {
