@@ -20,6 +20,7 @@ public class Lox {
         } else {
             runPrompt();
         }
+//        runFile("C:\\Users\\z0053jek\\IdeaProjects\\jlox\\tests\\long_comment.jlox");
     }
 
     private static void runFile(String Path) throws IOException {

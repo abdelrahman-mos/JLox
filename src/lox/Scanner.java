@@ -150,11 +150,24 @@ public class Scanner {
     }
 
     private void longComment() {
-        while (peek() != '*') {
+        // we had a /* in a line
+        boolean comment_exists = true;
+        int nested_comments = 0;
+        while (comment_exists) {
+            if (peek() == '\n') line++;
+            if (peek() == '/' && peekNext() == '*') {
+                nested_comments++;
+                current++;
+            }
+            if (peek() == '*' && peekNext() == '/') {
+                if (nested_comments == 0) {
+                    current++;
+                    comment_exists = false;
+                }
+                nested_comments--;
+            }
             advance();
         }
-
-        if (peek() == '/') advance();
     }
 
     private boolean match(char expected) {
